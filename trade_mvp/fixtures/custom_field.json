@@ -1,0 +1,64 @@
+[
+  {
+    "doctype": "Custom Field", "name": "Sales Order-port_of_loading",
+    "dt": "Sales Order", "module": "Trade MVP",
+    "fieldname": "port_of_loading", "label": "Port of Loading",
+    "fieldtype": "Data", "insert_after": "incoterm", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Sales Order-port_of_discharge",
+    "dt": "Sales Order", "module": "Trade MVP",
+    "fieldname": "port_of_discharge", "label": "Port of Discharge",
+    "fieldtype": "Data", "insert_after": "port_of_loading", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Sales Order-lc_number",
+    "dt": "Sales Order", "module": "Trade MVP",
+    "fieldname": "lc_number", "label": "LC Number",
+    "fieldtype": "Data", "insert_after": "port_of_discharge", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Purchase Order-port_of_loading",
+    "dt": "Purchase Order", "module": "Trade MVP",
+    "fieldname": "port_of_loading", "label": "Port of Loading",
+    "fieldtype": "Data", "insert_after": "incoterm", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Purchase Order-port_of_discharge",
+    "dt": "Purchase Order", "module": "Trade MVP",
+    "fieldname": "port_of_discharge", "label": "Port of Discharge",
+    "fieldtype": "Data", "insert_after": "port_of_loading", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Purchase Order-lc_number",
+    "dt": "Purchase Order", "module": "Trade MVP",
+    "fieldname": "lc_number", "label": "LC Number",
+    "fieldtype": "Data", "insert_after": "port_of_discharge", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Quotation-port_of_loading",
+    "dt": "Quotation", "module": "Trade MVP",
+    "fieldname": "port_of_loading", "label": "Port of Loading",
+    "fieldtype": "Data", "insert_after": "incoterm", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Quotation-port_of_discharge",
+    "dt": "Quotation", "module": "Trade MVP",
+    "fieldname": "port_of_discharge", "label": "Port of Discharge",
+    "fieldtype": "Data", "insert_after": "port_of_loading", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Quotation-lc_number",
+    "dt": "Quotation", "module": "Trade MVP",
+    "fieldname": "lc_number", "label": "LC Number",
+    "fieldtype": "Data", "insert_after": "port_of_discharge", "in_list_view": 0
+  },
+  {
+    "doctype": "Custom Field", "name": "Customer-trade_credit_limit",
+    "dt": "Customer", "module": "Trade MVP",
+    "fieldname": "trade_credit_limit", "label": "Credit Limit",
+    "fieldtype": "Currency", "insert_after": "customer_group",
+    "in_list_view": 0, "default": "0",
+    "description": "Set to 0 for unlimited credit"
+  }
+]
