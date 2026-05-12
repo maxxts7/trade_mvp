@@ -1,0 +1,5 @@
+body.trade-minimal .navbar-help,
+body.trade-minimal [data-label="Help"],
+body.trade-minimal [data-label="Explore"] {
+    display: none !important;
+}
