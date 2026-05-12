@@ -243,3 +243,57 @@ def _safe_hide_field(doctype, fieldname):
             "value": "1",
             "property_type": "Check",
         })
+
+
+def filter_bootinfo_for_trade_users(bootinfo):
+    user = frappe.session.user
+    if user in ("Guest", "Administrator"):
+        return
+
+    is_trade_user = frappe.db.exists(
+        "Has Role", {"parent": user, "role": ["in", TRADE_ROLES]}
+    )
+    if not is_trade_user:
+        return
+
+    _filter_workspaces(bootinfo)
+    _filter_desktop_icons(bootinfo)
+    _filter_sidebar(bootinfo)
+    _filter_app_data(bootinfo)
+
+
+def _filter_workspaces(bootinfo):
+    if not hasattr(bootinfo, "workspaces"):
+        return
+    pages = bootinfo.workspaces.get("pages", [])
+    bootinfo.workspaces["pages"] = [
+        p for p in pages if p.get("title") in TRADE_WORKSPACES
+    ]
+
+
+def _filter_desktop_icons(bootinfo):
+    if not hasattr(bootinfo, "desktop_icons"):
+        return
+    bootinfo.desktop_icons = [
+        icon for icon in bootinfo.desktop_icons
+        if icon.get("module_name") in TRADE_WORKSPACES
+        or icon.get("label") in TRADE_WORKSPACES
+    ]
+
+
+def _filter_sidebar(bootinfo):
+    if not hasattr(bootinfo, "workspace_sidebar_item"):
+        return
+    lower_names = {w.lower() for w in TRADE_WORKSPACES}
+    bootinfo.workspace_sidebar_item = {
+        k: v for k, v in bootinfo.workspace_sidebar_item.items()
+        if k.lower() in lower_names
+    }
+
+
+def _filter_app_data(bootinfo):
+    if not hasattr(bootinfo, "app_data"):
+        return
+    bootinfo.app_data = [
+        a for a in bootinfo.app_data if a.get("name") == "trade_mvp"
+    ]
