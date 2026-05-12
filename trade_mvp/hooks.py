@@ -21,5 +21,6 @@ doc_events = {
 fixtures = [
     {"dt": "Role", "filters": [["name", "like", "Trade%"]]},
     {"dt": "Custom Field", "filters": [["module", "=", "Trade MVP"]]},
+    {"dt": "Workflow State", "filters": [["name", "in", ["Draft", "Pending Approval", "Approved", "Rejected"]]]},
     {"dt": "Workflow", "filters": [["name", "like", "Trade%"]]},
 ]

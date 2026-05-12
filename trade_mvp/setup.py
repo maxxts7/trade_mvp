@@ -12,6 +12,102 @@ TRADE_WORKSPACES = [
     "Pipeline", "Sales", "Purchasing", "Warehouse", "Finance", "Asset Register"
 ]
 
+ROLE_WORKSPACES = {
+    "Trade - Sales Executive":    ["Pipeline", "Sales"],
+    "Trade - Purchase Executive": ["Purchasing"],
+    "Trade - Warehouse Staff":    ["Warehouse"],
+    "Trade - Accountant":         ["Finance", "Asset Register"],
+    "Trade - Manager":            TRADE_WORKSPACES,
+}
+
+# Sidebar items for each trade workspace
+# Each entry: (label, link_type, link_to) — "Section Break" rows have no link_type/link_to
+SIDEBAR_ITEMS = {
+    "Pipeline": [
+        ("Overview",    "Section Break", None),
+        ("Dashboard",   "Dashboard",     "CRM"),
+        ("CRM",         "Section Break", None),
+        ("Lead",        "DocType",       "Lead"),
+        ("Opportunity", "DocType",       "Opportunity"),
+        ("Masters",     "Section Break", None),
+        ("Customer",    "DocType",       "Customer"),
+        ("Contact",     "DocType",       "Contact"),
+    ],
+    "Sales": [
+        ("Overview",     "Section Break", None),
+        ("Dashboard",    "Dashboard",     "Selling"),
+        ("Orders",       "Section Break", None),
+        ("Quotation",    "DocType",       "Quotation"),
+        ("Sales Order",  "DocType",       "Sales Order"),
+        ("Delivery Note","DocType",       "Delivery Note"),
+        ("Sales Invoice","DocType",       "Sales Invoice"),
+        ("Catalogue",    "Section Break", None),
+        ("Item",         "DocType",       "Item"),
+        ("Customer",     "DocType",       "Customer"),
+    ],
+    "Purchasing": [
+        ("Overview",        "Section Break", None),
+        ("Dashboard",       "Dashboard",     "Buying"),
+        ("Orders",          "Section Break", None),
+        ("Purchase Order",  "DocType",       "Purchase Order"),
+        ("Purchase Receipt","DocType",       "Purchase Receipt"),
+        ("Purchase Invoice","DocType",       "Purchase Invoice"),
+        ("Masters",         "Section Break", None),
+        ("Supplier",        "DocType",       "Supplier"),
+        ("Item",            "DocType",       "Item"),
+    ],
+    "Warehouse": [
+        ("Overview",        "Section Break", None),
+        ("Dashboard",       "Dashboard",     "Stock"),
+        ("Transactions",    "Section Break", None),
+        ("Purchase Receipt","DocType",       "Purchase Receipt"),
+        ("Delivery Note",   "DocType",       "Delivery Note"),
+        ("Stock Entry",     "DocType",       "Stock Entry"),
+        ("Masters",         "Section Break", None),
+        ("Item",            "DocType",       "Item"),
+        ("Warehouse",       "DocType",       "Warehouse"),
+    ],
+    "Finance": [
+        ("Overview",                              "Section Break", None),
+        ("Dashboard",                             "Dashboard",     "Accounts"),
+        ("Invoices",                              "Section Break", None),
+        ("Sales Invoice",                         "DocType",       "Sales Invoice"),
+        ("Purchase Invoice",                      "DocType",       "Purchase Invoice"),
+        ("Payments",                              "Section Break", None),
+        ("Payment Entry",                         "DocType",       "Payment Entry"),
+        ("Banking",                               "Section Break", None),
+        ("Bank Account",                          "DocType",       "Bank Account"),
+        ("Financial Statements",                  "Section Break", None),
+        ("General Ledger",                        "Report",        "General Ledger"),
+        ("Trial Balance",                         "Report",        "Trial Balance"),
+        ("Profit and Loss Statement",             "Report",        "Profit and Loss Statement"),
+        ("Balance Sheet",                         "Report",        "Balance Sheet"),
+        ("Cash Flow",                             "Report",        "Cash Flow"),
+        ("Receivables",                           "Section Break", None),
+        ("Accounts Receivable",                   "Report",        "Accounts Receivable"),
+        ("Accounts Receivable Summary",           "Report",        "Accounts Receivable Summary"),
+        ("Customer Ledger Summary",               "Report",        "Customer Ledger Summary"),
+        ("Payables",                              "Section Break", None),
+        ("Accounts Payable",                      "Report",        "Accounts Payable"),
+        ("Accounts Payable Summary",              "Report",        "Accounts Payable Summary"),
+        ("Supplier Ledger Summary",               "Report",        "Supplier Ledger Summary"),
+        ("Analysis",                              "Section Break", None),
+        ("Gross Profit",                          "Report",        "Gross Profit"),
+        ("Sales Invoice Trends",                  "Report",        "Sales Invoice Trends"),
+        ("Purchase Invoice Trends",               "Report",        "Purchase Invoice Trends"),
+        ("Payment Period Based On Invoice Date",  "Report",        "Payment Period Based On Invoice Date"),
+        ("Bank Reconciliation Statement",         "Report",        "Bank Reconciliation Statement"),
+    ],
+    "Asset Register": [
+        ("Overview",        "Section Break", None),
+        ("Dashboard",       "Dashboard",     "Asset"),
+        ("Assets",          "Section Break", None),
+        ("Asset",           "DocType",       "Asset"),
+        ("Asset Category",  "DocType",       "Asset Category"),
+        ("Asset Movement",  "DocType",       "Asset Movement"),
+    ],
+}
+
 # role -> list of (doctype, read, write, create, delete, submit, cancel, amend)
 TRADE_PERMISSIONS = {
     "Trade - Sales Executive": [
@@ -25,8 +121,11 @@ TRADE_PERMISSIONS = {
         ("Customer",       1, 1, 1, 0, 0, 0, 0),
         ("Supplier",       1, 0, 0, 0, 0, 0, 0),
         ("Item",           1, 0, 0, 0, 0, 0, 0),
+        ("Warehouse",      1, 0, 0, 0, 0, 0, 0),
         ("Contact",        1, 1, 1, 0, 0, 0, 0),
         ("Address",        1, 1, 1, 0, 0, 0, 0),
+        ("Workflow",       1, 0, 0, 0, 0, 0, 0),
+        ("Workflow State", 1, 0, 0, 0, 0, 0, 0),
     ],
     "Trade - Purchase Executive": [
         ("Purchase Order",   1, 1, 1, 0, 1, 1, 1),
@@ -36,8 +135,11 @@ TRADE_PERMISSIONS = {
         ("Supplier",         1, 1, 1, 0, 0, 0, 0),
         ("Customer",         1, 0, 0, 0, 0, 0, 0),
         ("Item",             1, 0, 0, 0, 0, 0, 0),
+        ("Warehouse",        1, 0, 0, 0, 0, 0, 0),
         ("Contact",          1, 1, 1, 0, 0, 0, 0),
         ("Address",          1, 1, 1, 0, 0, 0, 0),
+        ("Workflow",         1, 0, 0, 0, 0, 0, 0),
+        ("Workflow State",   1, 0, 0, 0, 0, 0, 0),
     ],
     "Trade - Warehouse Staff": [
         ("Purchase Receipt", 1, 1, 1, 0, 1, 1, 1),
@@ -47,6 +149,12 @@ TRADE_PERMISSIONS = {
         ("Purchase Order",   1, 0, 0, 0, 0, 0, 0),
         ("Item",             1, 0, 0, 0, 0, 0, 0),
         ("Warehouse",        1, 0, 0, 0, 0, 0, 0),
+        ("Customer",         1, 0, 0, 0, 0, 0, 0),
+        ("Supplier",         1, 0, 0, 0, 0, 0, 0),
+        ("Contact",          1, 0, 0, 0, 0, 0, 0),
+        ("Address",          1, 0, 0, 0, 0, 0, 0),
+        ("Workflow",         1, 0, 0, 0, 0, 0, 0),
+        ("Workflow State",   1, 0, 0, 0, 0, 0, 0),
     ],
     "Trade - Accountant": [
         ("Sales Invoice",    1, 1, 1, 0, 1, 1, 1),
@@ -59,10 +167,13 @@ TRADE_PERMISSIONS = {
         ("Customer",         1, 0, 0, 0, 0, 0, 0),
         ("Supplier",         1, 0, 0, 0, 0, 0, 0),
         ("Item",             1, 0, 0, 0, 0, 0, 0),
+        ("Warehouse",        1, 0, 0, 0, 0, 0, 0),
         ("Bank Account",     1, 0, 0, 0, 0, 0, 0),
         ("Asset",            1, 1, 1, 0, 1, 1, 1),
         ("Asset Category",   1, 0, 0, 0, 0, 0, 0),
         ("Asset Movement",   1, 1, 1, 0, 1, 1, 1),
+        ("Workflow",         1, 0, 0, 0, 0, 0, 0),
+        ("Workflow State",   1, 0, 0, 0, 0, 0, 0),
     ],
     "Trade - Manager": [
         ("Lead",             1, 1, 1, 1, 0, 0, 0),
@@ -85,8 +196,104 @@ TRADE_PERMISSIONS = {
         ("Asset",            1, 1, 1, 1, 1, 1, 1),
         ("Asset Category",   1, 1, 1, 1, 0, 0, 0),
         ("Asset Movement",   1, 1, 1, 1, 1, 1, 1),
+        ("Workflow",         1, 0, 0, 0, 0, 0, 0),
+        ("Workflow State",   1, 0, 0, 0, 0, 0, 0),
     ],
 }
+
+# Reference/master DocTypes that every Trade role must be able to READ.
+# These appear as link fields inside forms the roles can edit, but their
+# default DocType permissions only list built-in ERPNext roles — not ours.
+TRADE_READ_REFS = [
+    # Core masters used as link targets in every transactional form
+    "Territory",
+    "Customer Group",
+    "Supplier Group",
+    "Item Group",
+    "Price List",
+    "Currency",
+    "UOM",
+    "Payment Terms Template",
+    "Tax Category",
+    "Sales Taxes and Charges Template",
+    "Purchase Taxes and Charges Template",
+    "Shipping Rule",
+    "Terms and Conditions",
+    "Incoterm",
+    "Cost Center",
+    "Account",
+    "Letter Head",
+    "Stock Entry Type",
+    "Lead Source",
+    # Item / stock references (appear in item line child tables)
+    "Item Tax Template",
+    "Batch",
+    "Serial and Batch Bundle",
+    "Manufacturer",
+    "Product Bundle",
+    "Material Request",
+    "Putaway Rule",
+    "Blanket Order",
+    "Supplier Quotation",
+    # CRM / contact references
+    "Salutation",
+    "Gender",
+    "Country",
+    "Industry Type",
+    "Market Segment",
+    "Opportunity Type",
+    "Sales Stage",
+    # Accounting / finance references
+    "Mode of Payment",
+    "Journal Entry",
+    "Payment Term",
+    "Payment Request",
+    "Finance Book",
+    "Tax Withholding Category",
+    # Misc form fields
+    "Project",
+    "Location",
+    # Company and Fiscal Year — appear on every transactional DocType and report filter
+    "Company",
+    "Fiscal Year",
+    # Misc form-level fields
+    "Print Heading",
+    "Language",
+    "Journal Entry Template",
+    "Party Type",
+    "Party Account",
+    # Banking — appear when opening Bank Account records
+    "Bank",
+    "Bank Account Type",
+    "Bank Account Subtype",
+    "Bank Transaction",
+    # Accounting ledger — ref_doctype for General Ledger, Trial Balance,
+    # P&L, Balance Sheet, Cash Flow reports; needs report=1 to pass
+    # frappe.has_permission(ref_doctype, "report") check in query_report.py
+    "GL Entry",
+    "Payment Ledger Entry",
+]
+
+# Reports that Trade - Accountant and Trade - Manager must be able to run.
+# ERPNext restricts these to Accounts User / Accounts Manager by default.
+FINANCE_REPORTS = [
+    "General Ledger",
+    "Trial Balance",
+    "Profit and Loss Statement",
+    "Balance Sheet",
+    "Cash Flow",
+    "Accounts Receivable",
+    "Accounts Receivable Summary",
+    "Accounts Payable",
+    "Accounts Payable Summary",
+    "Customer Ledger Summary",
+    "Supplier Ledger Summary",
+    "Gross Profit",
+    "Sales Invoice Trends",
+    "Purchase Invoice Trends",
+    "Payment Period Based On Invoice Date",
+    "Bank Reconciliation Statement",
+]
 
 BLOCK_MODULES = [
     "Accounts", "Stock", "Selling", "Buying", "CRM",
@@ -180,43 +387,120 @@ def after_install():
 
     hide_default_workspaces()
     setup_permissions()
+    setup_report_permissions()
     setup_module_profiles()
     setup_property_setters()
+    setup_workspace_sidebars()
     frappe.db.commit()
+
+    from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons_from_workspace
+    from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import create_workspace_sidebar_for_workspaces
+    create_workspace_sidebar_for_workspaces()
+    create_desktop_icons_from_workspace()
+    # "Trade MVP" has no DocTypes so it never appears in user.allow_modules.
+    # Clearing module on Workspace prevents the PermissionError in Workspace.__init__
+    # (line 42-48 frappe/desk/desktop.py) that silently excludes trade workspaces.
+    # Clearing module on Workspace Sidebar makes get_sidebar_items() include them
+    # unconditionally (bypasses the allow_modules check there too).
+    if TRADE_WORKSPACES:
+        placeholders = ", ".join(["%s"] * len(TRADE_WORKSPACES))
+        frappe.db.sql(
+            f"UPDATE `tabWorkspace` SET module = '' WHERE name IN ({placeholders})",
+            TRADE_WORKSPACES,
+        )
+        frappe.db.sql(
+            f"UPDATE `tabWorkspace Sidebar` SET module = NULL WHERE title IN ({placeholders})",
+            TRADE_WORKSPACES,
+        )
+    frappe.cache.flushall()
 
 
 def hide_default_workspaces():
-    frappe.db.sql("""
-        UPDATE `tabWorkspace`
-        SET is_hidden = 1
-        WHERE (module != 'Trade MVP' OR module IS NULL OR module = '')
-        AND name != 'Workspace'
-    """)
+    placeholders = ", ".join(["%s"] * len(TRADE_WORKSPACES))
+    frappe.db.sql(
+        f"UPDATE `tabWorkspace` SET is_hidden = 1 WHERE name NOT IN ({placeholders}) AND name != 'Workspace'",
+        TRADE_WORKSPACES,
+    )
+
+
+def setup_workspace_sidebars():
+    for ws_name, items in SIDEBAR_ITEMS.items():
+        if not frappe.db.exists("Workspace Sidebar", ws_name):
+            continue
+        doc = frappe.get_doc("Workspace Sidebar", ws_name)
+        doc.set("items", [])
+        for idx, (label, item_type, link_to) in enumerate(items, start=1):
+            row = {"label": label, "idx": idx}
+            if item_type == "Section Break":
+                row["type"] = "Section Break"
+                row["collapsible"] = 1
+            else:
+                row["type"] = "Link"
+                row["link_type"] = item_type
+                row["link_to"] = link_to
+                row["child"] = 1
+                row["indent"] = 1
+            doc.append("items", row)
+        doc.save(ignore_permissions=True)
+
+
+def _upsert_perm(doctype, role, values):
+    # Grant report access whenever read is granted so that
+    # frappe.has_permission(ref_doctype, "report") passes in query_report.py
+    if values.get("read"):
+        values = {**values, "report": 1}
+    existing = frappe.db.get_value(
+        "Custom DocPerm",
+        {"parent": doctype, "role": role, "permlevel": 0},
+        "name",
+    )
+    if existing:
+        frappe.db.set_value("Custom DocPerm", existing, values)
+    else:
+        perm = frappe.new_doc("Custom DocPerm")
+        perm.update({
+            "parent": doctype, "parenttype": "DocType",
+            "parentfield": "permissions", "role": role, "permlevel": 0,
+        })
+        perm.update(values)
+        perm.insert(ignore_permissions=True)
 
 
 def setup_permissions():
+    touched = set()
+
     for role, perms in TRADE_PERMISSIONS.items():
         for (doctype, read, write, create, delete, submit, cancel, amend) in perms:
-            existing = frappe.db.get_value(
-                "Custom DocPerm",
-                {"parent": doctype, "role": role, "permlevel": 0},
-                "name"
-            )
-            values = {
+            _upsert_perm(doctype, role, {
                 "read": read, "write": write, "create": create,
-                "delete": delete, "submit": submit, "cancel": cancel, "amend": amend
-            }
-            if existing:
-                frappe.db.set_value("Custom DocPerm", existing, values)
-            else:
-                perm = frappe.new_doc("Custom DocPerm")
-                perm.update({
-                    "parent": doctype, "parenttype": "DocType",
-                    "parentfield": "permissions", "role": role, "permlevel": 0,
-                })
-                perm.update(values)
-                perm.insert(ignore_permissions=True)
+                "delete": delete, "submit": submit, "cancel": cancel, "amend": amend,
+            })
+            touched.add(doctype)
+
+    read_only = {"read": 1, "write": 0, "create": 0, "delete": 0, "submit": 0, "cancel": 0, "amend": 0}
+    for doctype in TRADE_READ_REFS:
+        for role in TRADE_ROLES:
+            _upsert_perm(doctype, role, read_only)
+        touched.add(doctype)
+
+    for doctype in touched:
         frappe.clear_cache(doctype=doctype)
+
+
+def setup_report_permissions():
+    finance_roles = ["Trade - Accountant", "Trade - Manager"]
+    for report_name in FINANCE_REPORTS:
+        if not frappe.db.exists("Report", report_name):
+            continue
+        doc = frappe.get_doc("Report", report_name)
+        existing_roles = {row.role for row in doc.get("roles", [])}
+        changed = False
+        for role in finance_roles:
+            if role not in existing_roles:
+                doc.append("roles", {"role": role})
+                changed = True
+        if changed:
+            doc.save(ignore_permissions=True)
 
 
 def setup_module_profiles():
@@ -261,44 +545,50 @@ def filter_bootinfo_for_trade_users(bootinfo):
     if user in ("Guest", "Administrator"):
         return
 
-    is_trade_user = frappe.db.exists(
-        "Has Role", {"parent": user, "role": ["in", TRADE_ROLES]}
+    user_trade_roles = frappe.db.get_all(
+        "Has Role",
+        filters={"parent": user, "role": ["in", TRADE_ROLES]},
+        pluck="role",
     )
-    if not is_trade_user:
+    if not user_trade_roles:
         return
 
-    _filter_workspaces(bootinfo)
-    _filter_desktop_icons(bootinfo)
-    _filter_sidebar(bootinfo)
+    allowed = set()
+    for role in user_trade_roles:
+        allowed.update(ROLE_WORKSPACES.get(role, []))
+
+    _filter_workspaces(bootinfo, allowed)
+    _filter_desktop_icons(bootinfo, allowed)
+    _filter_sidebar(bootinfo, allowed)
     _filter_app_data(bootinfo)
 
 
-def _filter_workspaces(bootinfo):
+def _filter_workspaces(bootinfo, allowed):
     if not hasattr(bootinfo, "workspaces"):
         return
     pages = bootinfo.workspaces.get("pages", [])
     bootinfo.workspaces["pages"] = [
-        p for p in pages if p.get("title") in TRADE_WORKSPACES
+        p for p in pages if p.get("title") in allowed
     ]
 
 
-def _filter_desktop_icons(bootinfo):
+def _filter_desktop_icons(bootinfo, allowed):
     if not hasattr(bootinfo, "desktop_icons"):
         return
     bootinfo.desktop_icons = [
         icon for icon in bootinfo.desktop_icons
-        if icon.get("module_name") in TRADE_WORKSPACES
-        or icon.get("label") in TRADE_WORKSPACES
+        if icon.get("module_name") in allowed
+        or icon.get("label") in allowed
     ]
 
 
-def _filter_sidebar(bootinfo):
+def _filter_sidebar(bootinfo, allowed):
     if not hasattr(bootinfo, "workspace_sidebar_item"):
         return
-    lower_names = {w.lower() for w in TRADE_WORKSPACES}
+    lower_allowed = {w.lower() for w in allowed}
     bootinfo.workspace_sidebar_item = {
         k: v for k, v in bootinfo.workspace_sidebar_item.items()
-        if k.lower() in lower_names
+        if k.lower() in lower_allowed
     }
 
 
