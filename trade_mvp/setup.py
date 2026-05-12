@@ -167,6 +167,17 @@ HIDE_FIELDS = {
 
 
 def after_install():
+    # Fixtures must be synced before setup_permissions() because the Role
+    # records (Trade - *) are defined in fixtures and are not yet in the DB
+    # when after_install is called (Frappe runs sync_fixtures *after* after_install).
+    # Set in_migrate so workspace validate_route_conflict is skipped.
+    from frappe.utils.fixtures import sync_fixtures
+    frappe.flags.in_migrate = True
+    try:
+        sync_fixtures("trade_mvp")
+    finally:
+        frappe.flags.in_migrate = False
+
     hide_default_workspaces()
     setup_permissions()
     setup_module_profiles()

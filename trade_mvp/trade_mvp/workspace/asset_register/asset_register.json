@@ -1,0 +1,67 @@
+{
+ "doctype": "Workspace",
+ "name": "Asset Register",
+ "title": "Asset Register",
+ "label": "Asset Register",
+ "module": "Trade MVP",
+ "app": "trade_mvp",
+ "icon": "asset",
+ "is_hidden": 0,
+ "public": 1,
+ "sequence_id": 6.0,
+ "parent_page": "",
+ "restrict_to_domain": "",
+ "for_user": "",
+ "hide_custom": 0,
+ "content": "[]",
+ "roles": [],
+ "shortcuts": [],
+ "charts": [],
+ "number_cards": [],
+ "quick_lists": [],
+ "custom_blocks": [],
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Assets",
+   "link_count": 0,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Asset",
+   "link_count": 0,
+   "link_to": "Asset",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Asset Category",
+   "link_count": 0,
+   "link_to": "Asset Category",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "dependencies": "",
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Asset Movement",
+   "link_count": 0,
+   "link_to": "Asset Movement",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "type": "Workspace"
+}
