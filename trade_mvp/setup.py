@@ -297,3 +297,25 @@ def _filter_app_data(bootinfo):
     bootinfo.app_data = [
         a for a in bootinfo.app_data if a.get("name") == "trade_mvp"
     ]
+
+
+def check_credit_limit(doc, method=None):
+    if not doc.customer:
+        return
+
+    credit_limit = frappe.db.get_value("Customer", doc.customer, "trade_credit_limit") or 0
+    if not credit_limit:
+        return  # 0 = unlimited
+
+    outstanding = frappe.db.sql("""
+        SELECT COALESCE(SUM(outstanding_amount), 0)
+        FROM `tabSales Invoice`
+        WHERE customer = %s AND docstatus = 1 AND outstanding_amount > 0
+    """, doc.customer)[0][0] or 0
+
+    if float(outstanding) + float(doc.grand_total or 0) > float(credit_limit):
+        frappe.throw(
+            f"Customer {doc.customer} has exceeded their credit limit of "
+            f"{frappe.format_value(credit_limit, {'fieldtype': 'Currency'})}. "
+            f"Outstanding: {frappe.format_value(float(outstanding), {'fieldtype': 'Currency'})}."
+        )
