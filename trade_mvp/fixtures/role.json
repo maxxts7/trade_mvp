@@ -1,0 +1,7 @@
+[
+  {"doctype": "Role", "name": "Trade - Sales Executive",    "role_name": "Trade - Sales Executive",    "desk_access": 1},
+  {"doctype": "Role", "name": "Trade - Purchase Executive", "role_name": "Trade - Purchase Executive", "desk_access": 1},
+  {"doctype": "Role", "name": "Trade - Warehouse Staff",    "role_name": "Trade - Warehouse Staff",    "desk_access": 1},
+  {"doctype": "Role", "name": "Trade - Accountant",         "role_name": "Trade - Accountant",         "desk_access": 1},
+  {"doctype": "Role", "name": "Trade - Manager",            "role_name": "Trade - Manager",            "desk_access": 1}
+]
