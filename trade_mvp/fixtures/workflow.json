@@ -1,0 +1,53 @@
+[
+  {
+    "doctype": "Workflow", "name": "Trade SO Approval", "workflow_name": "Trade SO Approval",
+    "document_type": "Sales Order", "is_active": 1, "override_status": 0,
+    "send_email_alert": 0, "workflow_state_field": "workflow_state",
+    "states": [
+      {"state": "Draft",            "doc_status": "0", "allow_edit": "Trade - Sales Executive", "is_optional_state": 0},
+      {"state": "Pending Approval", "doc_status": "0", "allow_edit": "Trade - Manager",         "is_optional_state": 0},
+      {"state": "Approved",         "doc_status": "1", "allow_edit": "",                        "is_optional_state": 0},
+      {"state": "Rejected",         "doc_status": "0", "allow_edit": "Trade - Sales Executive", "is_optional_state": 0}
+    ],
+    "transitions": [
+      {"state": "Draft",            "action": "Submit for Approval", "next_state": "Pending Approval", "allowed": "Trade - Sales Executive", "allow_self_approval": 1},
+      {"state": "Pending Approval", "action": "Approve",             "next_state": "Approved",         "allowed": "Trade - Manager",         "allow_self_approval": 1},
+      {"state": "Pending Approval", "action": "Reject",              "next_state": "Rejected",         "allowed": "Trade - Manager",         "allow_self_approval": 1},
+      {"state": "Rejected",         "action": "Resubmit",            "next_state": "Pending Approval", "allowed": "Trade - Sales Executive", "allow_self_approval": 1}
+    ]
+  },
+  {
+    "doctype": "Workflow", "name": "Trade PO Approval", "workflow_name": "Trade PO Approval",
+    "document_type": "Purchase Order", "is_active": 1, "override_status": 0,
+    "send_email_alert": 0, "workflow_state_field": "workflow_state",
+    "states": [
+      {"state": "Draft",            "doc_status": "0", "allow_edit": "Trade - Purchase Executive", "is_optional_state": 0},
+      {"state": "Pending Approval", "doc_status": "0", "allow_edit": "Trade - Manager",            "is_optional_state": 0},
+      {"state": "Approved",         "doc_status": "1", "allow_edit": "",                           "is_optional_state": 0},
+      {"state": "Rejected",         "doc_status": "0", "allow_edit": "Trade - Purchase Executive", "is_optional_state": 0}
+    ],
+    "transitions": [
+      {"state": "Draft",            "action": "Submit for Approval", "next_state": "Pending Approval", "allowed": "Trade - Purchase Executive", "allow_self_approval": 1},
+      {"state": "Pending Approval", "action": "Approve",             "next_state": "Approved",         "allowed": "Trade - Manager",            "allow_self_approval": 1},
+      {"state": "Pending Approval", "action": "Reject",              "next_state": "Rejected",         "allowed": "Trade - Manager",            "allow_self_approval": 1},
+      {"state": "Rejected",         "action": "Resubmit",            "next_state": "Pending Approval", "allowed": "Trade - Purchase Executive", "allow_self_approval": 1}
+    ]
+  },
+  {
+    "doctype": "Workflow", "name": "Trade Payment Approval", "workflow_name": "Trade Payment Approval",
+    "document_type": "Payment Entry", "is_active": 1, "override_status": 0,
+    "send_email_alert": 0, "workflow_state_field": "workflow_state",
+    "states": [
+      {"state": "Draft",            "doc_status": "0", "allow_edit": "Trade - Accountant", "is_optional_state": 0},
+      {"state": "Pending Approval", "doc_status": "0", "allow_edit": "Trade - Manager",    "is_optional_state": 0},
+      {"state": "Approved",         "doc_status": "1", "allow_edit": "",                   "is_optional_state": 0},
+      {"state": "Rejected",         "doc_status": "0", "allow_edit": "Trade - Accountant", "is_optional_state": 0}
+    ],
+    "transitions": [
+      {"state": "Draft",            "action": "Submit for Approval", "next_state": "Pending Approval", "allowed": "Trade - Accountant", "allow_self_approval": 1},
+      {"state": "Pending Approval", "action": "Approve",             "next_state": "Approved",         "allowed": "Trade - Manager",    "allow_self_approval": 1},
+      {"state": "Pending Approval", "action": "Reject",              "next_state": "Rejected",         "allowed": "Trade - Manager",    "allow_self_approval": 1},
+      {"state": "Rejected",         "action": "Resubmit",            "next_state": "Pending Approval", "allowed": "Trade - Accountant", "allow_self_approval": 1}
+    ]
+  }
+]
