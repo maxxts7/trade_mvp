@@ -720,11 +720,22 @@ def _filter_workspaces(bootinfo, allowed):
 def _filter_desktop_icons(bootinfo, allowed):
     if not hasattr(bootinfo, "desktop_icons"):
         return
+    log = _log()
+    # Log every icon's key fields so we can see exactly what values are present
+    # and why the trade workspace icons do or don't match.
+    for icon in bootinfo.desktop_icons:
+        log.debug(
+            f"[icons] module_name={icon.get('module_name')!r} "
+            f"label={icon.get('label')!r} "
+            f"app={icon.get('app')!r} "
+            f"type={icon.get('type')!r}"
+        )
     bootinfo.desktop_icons = [
         icon for icon in bootinfo.desktop_icons
         if icon.get("module_name") in allowed
         or icon.get("label") in allowed
     ]
+    log.debug(f"[icons] kept {len(bootinfo.desktop_icons)} icons after filter (allowed={sorted(allowed)})")
 
 
 def _filter_sidebar(bootinfo, allowed):
@@ -740,8 +751,14 @@ def _filter_sidebar(bootinfo, allowed):
 def _filter_app_data(bootinfo):
     if not hasattr(bootinfo, "app_data"):
         return
+    log = _log()
+    # The boot payload uses app_name, not name — log all keys on first entry
+    # so we can verify the field name if this changes in a future Frappe version.
+    if bootinfo.app_data:
+        log.debug(f"[app_data] keys on first entry: {list(bootinfo.app_data[0].keys())}")
     bootinfo.app_data = [
-        a for a in bootinfo.app_data if a.get("name") == "trade_mvp"
+        a for a in bootinfo.app_data
+        if a.get("app_name") == "trade_mvp" or a.get("name") == "trade_mvp"
     ]
 
 
