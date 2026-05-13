@@ -1,4 +1,22 @@
+import logging as _logging
+
 import frappe
+
+
+def _log():
+    """Return a named logger that always writes at DEBUG level regardless of
+    Frappe's global log_level setting (which defaults to ERROR in production).
+
+    Log destinations (both written simultaneously):
+      bench-level : {bench}/logs/trade_mvp.log
+      site-level  : {bench}/sites/{site}/logs/trade_mvp.log
+
+    On Frappe Cloud both files appear under:
+      Site dashboard → Logs → trade_mvp.log
+    """
+    log = frappe.logger("trade_mvp", allow_site=True, file_count=20)
+    log.setLevel(_logging.DEBUG)
+    return log
 
 TRADE_ROLES = [
     "Trade - Sales Executive",
@@ -374,29 +392,82 @@ HIDE_FIELDS = {
 
 
 def after_install():
-    # Fixtures must be synced before setup_permissions() because the Role
-    # records (Trade - *) are defined in fixtures and are not yet in the DB
-    # when after_install is called (Frappe runs sync_fixtures *after* after_install).
-    # Set in_migrate so workspace validate_route_conflict is skipped.
+    log = _log()
+    log.info("after_install: START")
+
     from frappe.utils.fixtures import sync_fixtures
     frappe.flags.in_migrate = True
     try:
         sync_fixtures("trade_mvp")
+        log.info("after_install: sync_fixtures OK")
+    except Exception:
+        log.exception("after_install: sync_fixtures FAILED")
+        raise
     finally:
         frappe.flags.in_migrate = False
 
-    hide_default_workspaces()
-    setup_permissions()
-    setup_report_permissions()
-    setup_module_profiles()
-    setup_property_setters()
-    setup_workspace_sidebars()
+    try:
+        n = hide_default_workspaces()
+        log.info(f"after_install: hide_default_workspaces OK — {n} rows hidden")
+    except Exception:
+        log.exception("after_install: hide_default_workspaces FAILED")
+        raise
+
+    try:
+        setup_permissions()
+        log.info("after_install: setup_permissions OK")
+    except Exception:
+        log.exception("after_install: setup_permissions FAILED")
+        raise
+
+    try:
+        setup_report_permissions()
+        log.info("after_install: setup_report_permissions OK")
+    except Exception:
+        log.exception("after_install: setup_report_permissions FAILED")
+        raise
+
+    try:
+        setup_module_profiles()
+        log.info("after_install: setup_module_profiles OK")
+    except Exception:
+        log.exception("after_install: setup_module_profiles FAILED")
+        raise
+
+    try:
+        setup_property_setters()
+        log.info("after_install: setup_property_setters OK")
+    except Exception:
+        log.exception("after_install: setup_property_setters FAILED")
+        raise
+
+    try:
+        setup_workspace_sidebars()
+        log.info("after_install: setup_workspace_sidebars OK")
+    except Exception:
+        log.exception("after_install: setup_workspace_sidebars FAILED")
+        raise
+
     frappe.db.commit()
+    log.info("after_install: db.commit OK")
 
     from frappe.desk.doctype.desktop_icon.desktop_icon import create_desktop_icons_from_workspace
     from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import create_workspace_sidebar_for_workspaces
-    create_workspace_sidebar_for_workspaces()
-    create_desktop_icons_from_workspace()
+
+    try:
+        create_workspace_sidebar_for_workspaces()
+        log.info("after_install: create_workspace_sidebar_for_workspaces OK")
+    except Exception:
+        log.exception("after_install: create_workspace_sidebar_for_workspaces FAILED")
+        raise
+
+    try:
+        create_desktop_icons_from_workspace()
+        log.info("after_install: create_desktop_icons_from_workspace OK")
+    except Exception:
+        log.exception("after_install: create_desktop_icons_from_workspace FAILED")
+        raise
+
     # "Trade MVP" has no DocTypes so it never appears in user.allow_modules.
     # Clearing module on Workspace prevents the PermissionError in Workspace.__init__
     # (line 42-48 frappe/desk/desktop.py) that silently excludes trade workspaces.
@@ -404,15 +475,32 @@ def after_install():
     # unconditionally (bypasses the allow_modules check there too).
     if TRADE_WORKSPACES:
         placeholders = ", ".join(["%s"] * len(TRADE_WORKSPACES))
-        frappe.db.sql(
+
+        result = frappe.db.sql(
             f"UPDATE `tabWorkspace` SET module = '' WHERE name IN ({placeholders})",
             TRADE_WORKSPACES,
         )
+        log.info(f"after_install: cleared Workspace.module for {TRADE_WORKSPACES}")
+
         frappe.db.sql(
             f"UPDATE `tabWorkspace Sidebar` SET module = NULL WHERE title IN ({placeholders})",
             TRADE_WORKSPACES,
         )
+        log.info(f"after_install: cleared Workspace Sidebar.module for {TRADE_WORKSPACES}")
+
+    # Verify workspaces actually landed in the DB before flushing cache
+    found = frappe.db.get_all(
+        "Workspace",
+        filters={"name": ["in", TRADE_WORKSPACES]},
+        fields=["name", "module", "is_hidden", "public"],
+    )
+    log.info(f"after_install: workspace DB verification — found {len(found)}/{len(TRADE_WORKSPACES)}: {found}")
+    if len(found) < len(TRADE_WORKSPACES):
+        missing = set(TRADE_WORKSPACES) - {w.name for w in found}
+        log.warning(f"after_install: MISSING workspaces in DB: {missing}")
+
     frappe.cache.flushall()
+    log.info("after_install: cache flushed — COMPLETE")
 
 
 def hide_default_workspaces():
@@ -421,6 +509,8 @@ def hide_default_workspaces():
         f"UPDATE `tabWorkspace` SET is_hidden = 1 WHERE name NOT IN ({placeholders}) AND name != 'Workspace'",
         TRADE_WORKSPACES,
     )
+    hidden = frappe.db.sql("SELECT COUNT(*) FROM `tabWorkspace` WHERE is_hidden = 1")[0][0]
+    return hidden
 
 
 def setup_workspace_sidebars():
@@ -547,8 +637,12 @@ def _safe_hide_field(doctype, fieldname):
 
 
 def filter_bootinfo_for_trade_users(bootinfo):
+    log = _log()
     user = frappe.session.user
+    log.debug(f"[boot] user={user!r}")
+
     if user in ("Guest", "Administrator"):
+        log.debug(f"[boot] user={user!r} → skipped (system account), bootinfo untouched")
         return
 
     user_trade_roles = frappe.db.get_all(
@@ -556,17 +650,62 @@ def filter_bootinfo_for_trade_users(bootinfo):
         filters={"parent": user, "role": ["in", TRADE_ROLES]},
         pluck="role",
     )
+    log.debug(f"[boot] user={user!r} trade_roles={user_trade_roles}")
+
     if not user_trade_roles:
+        # No trade role — user sees raw bootinfo.
+        # ERPNext workspaces are hidden (is_hidden=1), trade workspaces should be visible.
+        ws_in_boot = [p.get("title") for p in bootinfo.workspaces.get("pages", [])] if hasattr(bootinfo, "workspaces") else []
+        log.warning(
+            f"[boot] user={user!r} has NO trade roles. "
+            f"Bootinfo workspaces passed through as-is: {ws_in_boot}. "
+            f"If this list is empty the desk will be blank."
+        )
         return
 
     allowed = set()
     for role in user_trade_roles:
         allowed.update(ROLE_WORKSPACES.get(role, []))
+    log.debug(f"[boot] user={user!r} allowed_workspaces={sorted(allowed)}")
+
+    # Capture state BEFORE filtering so we can log what was there vs what survived
+    ws_before  = [p.get("title") for p in bootinfo.workspaces.get("pages", [])] if hasattr(bootinfo, "workspaces") else []
+    icons_before  = len(getattr(bootinfo, "desktop_icons", []))
+    sidebar_before = sorted(getattr(bootinfo, "workspace_sidebar_item", {}).keys())
+    app_before = [a.get("name") for a in getattr(bootinfo, "app_data", [])]
+
+    log.debug(
+        f"[boot] BEFORE filter — "
+        f"workspaces={ws_before} "
+        f"icons={icons_before} "
+        f"sidebar_keys={sidebar_before} "
+        f"app_data={app_before}"
+    )
 
     _filter_workspaces(bootinfo, allowed)
     _filter_desktop_icons(bootinfo, allowed)
     _filter_sidebar(bootinfo, allowed)
     _filter_app_data(bootinfo)
+
+    ws_after   = [p.get("title") for p in bootinfo.workspaces.get("pages", [])] if hasattr(bootinfo, "workspaces") else []
+    icons_after   = len(getattr(bootinfo, "desktop_icons", []))
+    sidebar_after  = sorted(getattr(bootinfo, "workspace_sidebar_item", {}).keys())
+    app_after  = [a.get("name") for a in getattr(bootinfo, "app_data", [])]
+
+    log.debug(
+        f"[boot] AFTER filter — "
+        f"workspaces={ws_after} "
+        f"icons={icons_after} "
+        f"sidebar_keys={sidebar_after} "
+        f"app_data={app_after}"
+    )
+
+    if not ws_after:
+        log.warning(
+            f"[boot] user={user!r} desk will be BLANK. "
+            f"allowed={sorted(allowed)} but nothing matched in bootinfo workspaces={ws_before}. "
+            f"Check that trade workspace records exist in tabWorkspace with is_hidden=0 and module=''."
+        )
 
 
 def _filter_workspaces(bootinfo, allowed):
@@ -604,6 +743,134 @@ def _filter_app_data(bootinfo):
     bootinfo.app_data = [
         a for a in bootinfo.app_data if a.get("name") == "trade_mvp"
     ]
+
+
+@frappe.whitelist()
+def get_trade_debug_info():
+    """On-demand desk-state inspector.
+
+    No SSH needed — call this from the browser JS console while logged into
+    any account that has System Manager or Administrator:
+
+        frappe.call('trade_mvp.setup.get_trade_debug_info')
+            .then(r => console.log(JSON.stringify(r.message, null, 2)))
+
+    Returns a complete snapshot of every decision point that controls what
+    appears on the desk for the current user.
+    """
+    if frappe.session.user != "Administrator" and "System Manager" not in frappe.get_roles():
+        frappe.throw("Requires System Manager or Administrator")
+
+    user = frappe.session.user
+    user_roles = frappe.get_roles()
+    trade_roles = [r for r in user_roles if r in TRADE_ROLES]
+
+    allowed: set = set()
+    for role in trade_roles:
+        allowed.update(ROLE_WORKSPACES.get(role, []))
+
+    # 1. What's in tabWorkspace for the 6 trade workspaces?
+    trade_ws_in_db = frappe.db.get_all(
+        "Workspace",
+        filters={"name": ["in", TRADE_WORKSPACES]},
+        fields=["name", "module", "is_hidden", "public", "app"],
+    )
+
+    # 2. What does get_workspace_sidebar_items() actually return for this user?
+    #    This is exactly what populates bootinfo.workspaces["pages"].
+    from frappe.desk.desktop import get_workspace_sidebar_items
+    sidebar_result = get_workspace_sidebar_items()
+    pages_from_frappe = [
+        {"title": p.get("title"), "is_hidden": p.get("is_hidden"), "module": p.get("module")}
+        for p in sidebar_result.get("pages", [])
+    ]
+
+    # 3. What's in tabWorkspace Sidebar?
+    ws_sidebars = frappe.db.get_all(
+        "Workspace Sidebar",
+        filters={"name": ["in", TRADE_WORKSPACES]},
+        fields=["name", "module"],
+    )
+
+    # 4. What module profile is this user on?
+    module_profile = frappe.db.get_value("User", user, "module_profile")
+    blocked_modules = frappe.get_cached_doc("User", user).get_blocked_modules()
+
+    # 5. Does "Workspace Manager" role gate apply?
+    has_workspace_manager = "Workspace Manager" in user_roles
+
+    # 6. All hidden workspaces
+    all_ws = frappe.db.get_all(
+        "Workspace",
+        fields=["name", "is_hidden", "module", "public"],
+        order_by="is_hidden desc, name asc",
+    )
+
+    return {
+        "user": user,
+        "user_trade_roles": trade_roles,
+        "allowed_workspaces_for_roles": sorted(allowed),
+        "has_workspace_manager_role": has_workspace_manager,
+        "module_profile": module_profile,
+        "blocked_modules": blocked_modules,
+        "trade_workspaces_in_db": trade_ws_in_db,
+        "trade_workspaces_expected": TRADE_WORKSPACES,
+        "trade_workspaces_missing": sorted(set(TRADE_WORKSPACES) - {w.name for w in trade_ws_in_db}),
+        "workspace_sidebars_in_db": ws_sidebars,
+        "pages_frappe_filter_returns": pages_from_frappe,
+        "pages_frappe_filter_count": len(pages_from_frappe),
+        "all_workspaces_hidden_count": sum(1 for w in all_ws if w.is_hidden),
+        "all_workspaces_visible_count": sum(1 for w in all_ws if not w.is_hidden),
+        "all_workspaces": [
+            {"name": w.name, "is_hidden": w.is_hidden, "module": w.module, "public": w.public}
+            for w in all_ws
+        ],
+        "diagnosis": _diagnose(trade_ws_in_db, pages_from_frappe, trade_roles, allowed),
+    }
+
+
+def _diagnose(trade_ws_in_db, pages_from_frappe, trade_roles, allowed):
+    """Return a plain-English summary of what's wrong."""
+    issues = []
+
+    if len(trade_ws_in_db) < len(TRADE_WORKSPACES):
+        missing = set(TRADE_WORKSPACES) - {w.name for w in trade_ws_in_db}
+        issues.append(f"MISSING workspace records in DB: {sorted(missing)}. Run after_install().")
+
+    for ws in trade_ws_in_db:
+        if ws.module:
+            issues.append(
+                f"Workspace '{ws.name}' has module='{ws.module}' — should be blank. "
+                f"Frappe's allow_modules gate will block it. Run the module-clearing SQL."
+            )
+        if ws.is_hidden:
+            issues.append(f"Workspace '{ws.name}' has is_hidden=1 — it will never appear in the sidebar.")
+
+    if not trade_roles:
+        issues.append(
+            "Current user has NO trade roles. boot_session filter will pass bootinfo through "
+            "unmodified. The user will see whatever Frappe's own filters return — if those "
+            "workspaces are empty the desk is blank."
+        )
+
+    if trade_roles and not pages_from_frappe:
+        issues.append(
+            "User HAS trade roles but Frappe's get_workspace_sidebar_items() returned 0 pages. "
+            "The boot_session filter has nothing to work with. Check workspace DB records and module field."
+        )
+
+    if trade_roles and allowed and pages_from_frappe:
+        page_titles = {p["title"] for p in pages_from_frappe}
+        unmatched = allowed - page_titles
+        if unmatched:
+            issues.append(
+                f"Trade roles allow {sorted(allowed)} but these are NOT in Frappe's page list: "
+                f"{sorted(unmatched)}. After the boot filter runs, those workspaces will be stripped."
+            )
+
+    if not issues:
+        return "No issues detected. Desk should show workspaces correctly."
+    return issues
 
 
 def check_credit_limit(doc, method=None):
