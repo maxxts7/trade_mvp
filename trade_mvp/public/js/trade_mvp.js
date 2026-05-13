@@ -1,6 +1,6 @@
 frappe.provide("trade_mvp");
 
-frappe.ready(function () {
+$(document).ready(function () {
     const tradeRoles = [
         "Trade - Sales Executive",
         "Trade - Purchase Executive",
