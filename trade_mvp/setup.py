@@ -675,7 +675,7 @@ def filter_bootinfo_for_trade_users(bootinfo):
     ws_before  = [p.get("title") for p in bootinfo.workspaces.get("pages", [])] if hasattr(bootinfo, "workspaces") else []
     icons_before  = len(getattr(bootinfo, "desktop_icons", []))
     sidebar_before = sorted(getattr(bootinfo, "workspace_sidebar_item", {}).keys())
-    app_before = [a.get("name") for a in getattr(bootinfo, "app_data", [])]
+    app_before = [a.get("app_name") or a.get("name") for a in getattr(bootinfo, "app_data", [])]
 
     log.debug(
         f"[boot] BEFORE filter — "
@@ -693,7 +693,7 @@ def filter_bootinfo_for_trade_users(bootinfo):
     ws_after   = [p.get("title") for p in bootinfo.workspaces.get("pages", [])] if hasattr(bootinfo, "workspaces") else []
     icons_after   = len(getattr(bootinfo, "desktop_icons", []))
     sidebar_after  = sorted(getattr(bootinfo, "workspace_sidebar_item", {}).keys())
-    app_after  = [a.get("name") for a in getattr(bootinfo, "app_data", [])]
+    app_after  = [a.get("app_name") or a.get("name") for a in getattr(bootinfo, "app_data", [])]
 
     log.debug(
         f"[boot] AFTER filter — "
@@ -837,6 +837,21 @@ def get_trade_debug_info():
         ],
         "diagnosis": _diagnose(trade_ws_in_db, pages_from_frappe, trade_roles, allowed),
     }
+
+
+@frappe.whitelist()
+def run_post_install_fixes():
+    """Run on an already-installed site to apply fixes that only execute in after_install.
+
+    Call from browser address bar while logged in as Administrator:
+      /api/method/trade_mvp.setup.run_post_install_fixes
+    """
+    if frappe.session.user != "Administrator" and "System Manager" not in frappe.get_roles():
+        frappe.throw("Requires Administrator or System Manager")
+    _create_trade_desktop_icons()
+    frappe.db.commit()
+    frappe.cache.flushall()
+    return "Done — trade workspace icons created and cache flushed."
 
 
 def _create_trade_desktop_icons():
