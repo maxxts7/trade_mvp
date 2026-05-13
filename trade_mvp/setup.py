@@ -488,19 +488,25 @@ def setup_permissions():
 
 
 def setup_report_permissions():
+    from frappe.utils import now
     finance_roles = ["Trade - Accountant", "Trade - Manager"]
     for report_name in FINANCE_REPORTS:
         if not frappe.db.exists("Report", report_name):
             continue
-        doc = frappe.get_doc("Report", report_name)
-        existing_roles = {row.role for row in doc.get("roles", [])}
-        changed = False
         for role in finance_roles:
-            if role not in existing_roles:
-                doc.append("roles", {"role": role})
-                changed = True
-        if changed:
-            doc.save(ignore_permissions=True)
+            already = frappe.db.sql(
+                "SELECT name FROM `tabHas Role` WHERE parent=%s AND parenttype='Report' AND role=%s",
+                (report_name, role),
+            )
+            if not already:
+                frappe.db.sql(
+                    """INSERT INTO `tabHas Role`
+                           (name, creation, modified, modified_by, owner, docstatus,
+                            parent, parenttype, parentfield, role)
+                       VALUES (%s, %s, %s, 'Administrator', 'Administrator', 0,
+                               %s, 'Report', 'roles', %s)""",
+                    (frappe.generate_hash(), now(), now(), report_name, role),
+                )
 
 
 def setup_module_profiles():
