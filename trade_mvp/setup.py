@@ -441,13 +441,6 @@ def after_install():
         log.exception("after_install: setup_property_setters FAILED")
         raise
 
-    try:
-        setup_workspace_sidebars()
-        log.info("after_install: setup_workspace_sidebars OK")
-    except Exception:
-        log.exception("after_install: setup_workspace_sidebars FAILED")
-        raise
-
     frappe.db.commit()
     log.info("after_install: db.commit OK")
 
@@ -459,6 +452,15 @@ def after_install():
         log.info("after_install: create_workspace_sidebar_for_workspaces OK")
     except Exception:
         log.exception("after_install: create_workspace_sidebar_for_workspaces FAILED")
+        raise
+
+    # Must run AFTER create_workspace_sidebar_for_workspaces() so the Workspace Sidebar
+    # records exist before we try to populate their items.
+    try:
+        setup_workspace_sidebars()
+        log.info("after_install: setup_workspace_sidebars OK")
+    except Exception:
+        log.exception("after_install: setup_workspace_sidebars FAILED")
         raise
 
     try:
@@ -518,9 +520,11 @@ def hide_default_workspaces():
 
 def setup_workspace_sidebars():
     for ws_name, items in SIDEBAR_ITEMS.items():
-        if not frappe.db.exists("Workspace Sidebar", ws_name):
-            continue
-        doc = frappe.get_doc("Workspace Sidebar", ws_name)
+        if frappe.db.exists("Workspace Sidebar", ws_name):
+            doc = frappe.get_doc("Workspace Sidebar", ws_name)
+        else:
+            doc = frappe.new_doc("Workspace Sidebar")
+            doc.title = ws_name
         doc.set("items", [])
         for idx, (label, item_type, link_to) in enumerate(items, start=1):
             row = {"label": label, "idx": idx}
@@ -848,10 +852,22 @@ def run_post_install_fixes():
     """
     if frappe.session.user != "Administrator" and "System Manager" not in frappe.get_roles():
         frappe.throw("Requires Administrator or System Manager")
+
+    from frappe.utils.fixtures import sync_fixtures
+    frappe.flags.in_migrate = True
+    try:
+        sync_fixtures("trade_mvp")
+    finally:
+        frappe.flags.in_migrate = False
+
+    from frappe.desk.doctype.workspace_sidebar.workspace_sidebar import create_workspace_sidebar_for_workspaces
+    create_workspace_sidebar_for_workspaces()
+    setup_workspace_sidebars()
+
     _create_trade_desktop_icons()
     frappe.db.commit()
     frappe.cache.flushall()
-    return "Done — trade workspace icons created and cache flushed."
+    return "Done — workspace sidebars populated, icons created, cache flushed."
 
 
 def _create_trade_desktop_icons():
