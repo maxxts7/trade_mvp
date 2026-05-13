@@ -488,6 +488,9 @@ def after_install():
         )
         log.info(f"after_install: cleared Workspace Sidebar.module for {TRADE_WORKSPACES}")
 
+    _create_trade_desktop_icons()
+    log.info("after_install: _create_trade_desktop_icons OK")
+
     # Verify workspaces actually landed in the DB before flushing cache
     found = frappe.db.get_all(
         "Workspace",
@@ -720,22 +723,12 @@ def _filter_workspaces(bootinfo, allowed):
 def _filter_desktop_icons(bootinfo, allowed):
     if not hasattr(bootinfo, "desktop_icons"):
         return
-    log = _log()
-    # Log every icon's key fields so we can see exactly what values are present
-    # and why the trade workspace icons do or don't match.
-    for icon in bootinfo.desktop_icons:
-        log.debug(
-            f"[icons] module_name={icon.get('module_name')!r} "
-            f"label={icon.get('label')!r} "
-            f"app={icon.get('app')!r} "
-            f"type={icon.get('type')!r}"
-        )
+    # get_desktop_icons() does not return a module_name field — only label
+    # identifies which workspace each icon belongs to.
     bootinfo.desktop_icons = [
         icon for icon in bootinfo.desktop_icons
-        if icon.get("module_name") in allowed
-        or icon.get("label") in allowed
+        if icon.get("label") in allowed
     ]
-    log.debug(f"[icons] kept {len(bootinfo.desktop_icons)} icons after filter (allowed={sorted(allowed)})")
 
 
 def _filter_sidebar(bootinfo, allowed):
@@ -844,6 +837,39 @@ def get_trade_debug_info():
         ],
         "diagnosis": _diagnose(trade_ws_in_db, pages_from_frappe, trade_roles, allowed),
     }
+
+
+def _create_trade_desktop_icons():
+    """Create Desktop Icon records for trade workspaces.
+
+    create_desktop_icons_from_workspace() (Frappe core) only creates icons
+    inside an `if w.module:` block — workspaces with module='' are skipped.
+    We clear module on trade workspaces to bypass the allow_modules gate, so
+    we must create their icons explicitly here.
+    """
+    log = _log()
+    # icon values sourced directly from the workspace JSON fixtures
+    ws_icons = {
+        "Pipeline":      "crm",
+        "Sales":         "sell",
+        "Purchasing":    "buying",
+        "Warehouse":     "stock",
+        "Finance":       "accounting",
+        "Asset Register": "asset",
+    }
+    for ws_name, icon_name in ws_icons.items():
+        if frappe.db.exists("Desktop Icon", {"label": ws_name, "icon_type": "Link"}):
+            log.info(f"[icons] Desktop Icon for '{ws_name}' already exists — skipped")
+            continue
+        icon = frappe.new_doc("Desktop Icon")
+        icon.label      = ws_name
+        icon.link_type  = "Workspace Sidebar"
+        icon.link_to    = ws_name
+        icon.icon_type  = "Link"
+        icon.icon       = icon_name
+        icon.standard   = 1
+        icon.insert(ignore_permissions=True)
+        log.info(f"[icons] Created Desktop Icon for '{ws_name}'")
 
 
 def _diagnose(trade_ws_in_db, pages_from_frappe, trade_roles, allowed):
