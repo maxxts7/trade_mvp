@@ -519,12 +519,21 @@ def hide_default_workspaces():
 
 
 def setup_workspace_sidebars():
+    log = _log()
+
+    # 1. What Workspace Sidebar records exist right now?
+    existing = frappe.db.get_all("Workspace Sidebar", fields=["name", "title", "module"])
+    log.info(f"[sidebar] existing Workspace Sidebar records: {[r.name for r in existing]}")
+
     for ws_name, items in SIDEBAR_ITEMS.items():
         if frappe.db.exists("Workspace Sidebar", ws_name):
             doc = frappe.get_doc("Workspace Sidebar", ws_name)
+            log.info(f"[sidebar] '{ws_name}' — found existing record (name={doc.name!r}, module={doc.module!r}), items before clear: {len(doc.items)}")
         else:
             doc = frappe.new_doc("Workspace Sidebar")
             doc.title = ws_name
+            log.info(f"[sidebar] '{ws_name}' — no record found, creating new")
+
         doc.set("items", [])
         for idx, (label, item_type, link_to) in enumerate(items, start=1):
             row = {"label": label, "idx": idx}
@@ -538,7 +547,19 @@ def setup_workspace_sidebars():
                 row["child"] = 1
                 row["indent"] = 1
             doc.append("items", row)
-        doc.save(ignore_permissions=True)
+
+        try:
+            doc.save(ignore_permissions=True)
+            # Verify what actually landed in the DB
+            saved = frappe.db.get_all(
+                "Workspace Sidebar Item",
+                filters={"parent": doc.name},
+                fields=["label", "type", "link_to"],
+                order_by="idx asc",
+            )
+            log.info(f"[sidebar] '{ws_name}' — saved OK. DB rows ({len(saved)}): {[(r.label, r.type) for r in saved]}")
+        except Exception:
+            log.exception(f"[sidebar] '{ws_name}' — save FAILED")
 
 
 def _upsert_perm(doctype, role, values):
@@ -890,7 +911,6 @@ def _create_trade_desktop_icons():
     }
     for ws_name, icon_name in ws_icons.items():
         if frappe.db.exists("Desktop Icon", {"label": ws_name, "icon_type": "Link"}):
-            log.info(f"[icons] Desktop Icon for '{ws_name}' already exists — skipped")
             continue
         icon = frappe.new_doc("Desktop Icon")
         icon.label      = ws_name
@@ -900,7 +920,6 @@ def _create_trade_desktop_icons():
         icon.icon       = icon_name
         icon.standard   = 1
         icon.insert(ignore_permissions=True)
-        log.info(f"[icons] Created Desktop Icon for '{ws_name}'")
 
 
 def _diagnose(trade_ws_in_db, pages_from_frappe, trade_roles, allowed):
